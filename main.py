@@ -3,12 +3,15 @@ import matplotlib.dates as mdates
 # import numpy as np
 import datetime
 
+import pandas
+import csv
+
 
 class Savings:
 
     def __init__(self, amount=0, time_start=(2020, 1, 1)):
         self.amount = amount
-        self.amount_added = 0
+        self.amount_added = amount
         self.interest_rate = .015
         self.days_in_year = 365
         self.time_start = datetime.date(*time_start)  # in form datetime.date(year, month, day)
@@ -39,17 +42,22 @@ class Savings:
             self.amount_added += quantity
 
 
-new = Savings(0, (2020, 1, 20))  # opening position
+df = pandas.read_csv('example_savings_account.csv', parse_dates=['date (YY-MM-DD)'])
 
-new.add_or_remove_funds(20000, (2020, 1, 20))
+line_count = 0
+print(df)
+for row in df.values:
+    # date parsing conflict resolved by changing the format of data in the date column to YY-MM-DD from DD-MM-YY
 
-new.add_or_remove_funds(10000, (2020, 2, 12))
+    date_tuple = (row[1].year, row[1].month, row[1].day)  # in form Year-Month-Day
 
-new.add_or_remove_funds(1334.55, (2020, 6, 30))
-
-new.add_or_remove_funds(5000, (2020, 8, 16))
-
-new.balance()  # closing position
+    if line_count == 0:
+        new = Savings(row[0], date_tuple)
+        line_count += 1
+    else:
+        new.add_or_remove_funds(row[0], date_tuple)
+        line_count += 1
+new.balance()
 
 print(new.amount - new.amount_added)
 print(new.amount)
